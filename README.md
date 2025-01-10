@@ -1,9 +1,13 @@
-Node.js Cryptographic API Service
+Verify Sign file API Service
+
 A Node.js service for verifying digital signatures of files using the cryptographic library IIT. This service supports file uploads and signature verification via an API.
 Features
-  •	Supports memory and disk storage for uploaded files.
-  •	Verifies digital signatures against cryptographic standards.
-  •	Customizable through a configuration file (config.json).
+  
+    •	Supports memory and disk storage for uploaded files.
+  
+    •	Verifies digital signatures against cryptographic standards.
+  
+    •	Customizable through a configuration file (config.json).
 
 ________________________________________
 Configuration
@@ -13,30 +17,35 @@ File Storage
   "destination": "memory", // "memory" for storing files in RAM, "disk" for saving on disk
   "dest": "./uploads"      // Directory for storing files when "destination" is set to "disk"
 }
-•	destination: Determines where uploaded files are temporarily stored. 
-o	"memory": Files are stored in memory (RAM).
-o	"disk": Files are saved to the directory specified by the dest parameter.
-•	dest: Directory for storing uploaded files when destination is "disk".
+
+    •	destination: Determines where uploaded files are temporarily stored. 
+      o	"memory": Files are stored in memory (RAM).
+      o	"disk": Files are saved to the directory specified by the dest parameter.
+    •	dest: Directory for storing uploaded files when destination is "disk".
+
 ________________________________________
 Upload Limits
 "uploadLimits": {
   "fileSize": 52428800
 }
-•	fileSize: Maximum size for uploaded files in bytes (default: 50 MB).
+    •	fileSize: Maximum size for uploaded files in bytes (default: 50 MB).
+
 ________________________________________
 Cryptographic Provider Settings
-"CADefault": "\"Дія\". Кваліфікований надавач електронних довірчих послуг"
-•	CADefault: Name of the default Certification Authority (CA).
+  "CADefault": "\"Дія\". Кваліфікований надавач електронних довірчих послуг"
+    •	CADefault: Name of the default Certification Authority (CA).
+
 ________________________________________
 Debug Mode
 "DebugMode": true
-•	DebugMode: Enables debug mode for testing purposes. 
-o	true: Loads test certificates and settings.
-o	false: Loads production certificates and settings.
+  •	DebugMode: Enables debug mode for testing purposes. 
+    o	true: Loads test certificates and settings.
+    o	false: Loads production certificates and settings.
+
 ________________________________________
 Prerequisites
-•	Node.js (v14+ recommended)
-•	NPM (v6+ recommended)
+  •	Node.js (v14+ recommended)
+  •	NPM (v6+ recommended)
 ________________________________________
 Setup
 1.	Clone the repository:
