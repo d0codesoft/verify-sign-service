@@ -25,7 +25,7 @@ Upload Limits
 •	fileSize: Maximum size for uploaded files in bytes (default: 50 MB).
 ________________________________________
 Cryptographic Provider Settings
-"CADefault": "\"\u0414\u0456\u044f\". \u041a\u0432\u0430\u043b\u0456\u0444\u0456\u043a\u043e\u0432\u0430\u043d\u0438\u0439 \u043d\u0430\u0434\u0430\u0432\u0430\u0447 \u0435\u043b\u0435\u043a\u0442\u0440\u043e\u043d\u043d\u0438\u0445 \u0434\u043e\u0432\u0456\u0440\u0447\u0438\u0445 \u043f\u043e\u0441\u043b\u0443\u0433"
+"CADefault": "\"Дія\". Кваліфікований надавач електронних довірчих послуг"
 •	CADefault: Name of the default Certification Authority (CA).
 ________________________________________
 Debug Mode
