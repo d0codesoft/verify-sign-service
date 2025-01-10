@@ -1,0 +1,11 @@
+{
+  "fileStorage": {
+    "destination": "memory",
+    "dest" : "./uploads"
+  },
+  "uploadLimits": {
+    "fileSize": 52428800
+  },
+  "CADefault": "\"Дія\". Кваліфікований надавач електронних довірчих послуг",
+  "DebugMode": true
+}

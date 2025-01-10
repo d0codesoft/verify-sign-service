@@ -1,0 +1,17 @@
+{
+  "name": "verify-sign-service",
+  "version": "1.0.0",
+  "main": "main.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "author": "SCODE Alexandr",
+  "license": "ISC",
+  "type": "commonjs",
+  "description": "Service for verify sign documents Diya pidpis",
+  "dependencies": {
+    "multer": "^1.4.5-lts.1",
+    "sleep": "^6.3.0"
+  }
+}
