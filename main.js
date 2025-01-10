@@ -129,7 +129,7 @@ function SetSettings(CAs, CASettings) {
 
 //-----------------------------------------------------------------------------
 
-/* Імпорт сертифікатів до сховища криптографічної бібліотеки */
+/* Import certificates to the cryptographic library storage */
 function LoadCertificates(certsFilePaths) {
     if (!certsFilePaths)
         return;
@@ -143,19 +143,6 @@ function LoadCertificates(certsFilePaths) {
             g_euSign.SaveCertificate(data);
         }
     }
-}
-
-//-----------------------------------------------------------------------------
-
-/* Зчитування особистого ключа */
-/* Ос. ключ використовується в функціях накладання підпису, зашифрування та */
-/* розшифрування даних */
-function ReadPrivateKey(pKeyFilePath, password, certsFilePaths) {
-    /* Імпорт сертифікатів ос. ключа */
-    LoadCertificates(certsFilePaths);
-    /* Зчитування ключа */
-    let pKeyData = new Uint8Array(fss.readFileSync(pKeyFilePath));
-    g_euSign.ReadPrivateKeyBinary(pKeyData, password)
 }
 
 //-----------------------------------------------------------------------------
