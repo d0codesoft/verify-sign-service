@@ -2,6 +2,7 @@
  * Author: SCODE Alexandr
  * Created Date: 2025-01
  * Description: Service API for verify sign and add watermark to pdf file.
+ * Version: 1.0
  */
 
 const express = require('express');
