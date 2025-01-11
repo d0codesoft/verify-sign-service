@@ -447,6 +447,11 @@ app.post('/verify-file', upload.single('file'), async (req, res) => {
     }
 });
 
+// Health check endpoint
+app.get('/health', (req, res) => {
+    res.status(200).send('Service is running');
+});
+
 // Start server
 const PORT = process.env.PORT || 3770;
 app.listen(PORT, () => {

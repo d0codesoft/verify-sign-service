@@ -38,4 +38,4 @@ jobs:
         run: |
           node main.js &
           sleep 5
-          curl -f http://localhost:3770 || (echo "Service failed to start" && exit 1)
+          curl -f http://localhost:3770/health || (echo "Service failed to start" && exit 1)
