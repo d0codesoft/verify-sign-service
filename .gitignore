@@ -132,3 +132,6 @@ dist
 
 # Node module directories created by yarn
 .node_modules/
+
+# Idea files
+.idea/
