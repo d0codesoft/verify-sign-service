@@ -11,8 +11,8 @@
   "watermark" : {
     "image" : "./data/watermark_stamp.png",
     "imageScaleFactor" : 0.5,
-    "imagePageXPosition" :  "left",
+    "imagePageXPosition" :  "right",
     "imagePageYPosition" :  "bottom",
-    "imageOpacity" : 0.3
+    "imageOpacity" : 0.6
   }
 }

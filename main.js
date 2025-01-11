@@ -232,13 +232,13 @@ async function addImageWatermark(pdfBytes, configWatermark) {
         // Default position is center
         let positionY = (pageHeight - height) / 2;
         if (configWatermark.imagePageYPosition === "top") {
-            positionY = (pageHeight * 0.1);
+            positionY = pageHeight - (pageHeight * 0.1) - height;
         }
         else if (configWatermark.imagePageYPosition === "center") {
             positionY = (pageHeight - height) / 2;
         }
         else if (configWatermark.imagePageYPosition === "bottom") {
-            positionY = pageHeight - (pageHeight * 0.1) - height;
+            positionY = (pageHeight * 0.1);
         }
 
         // Draw the image watermark in the center of each page
