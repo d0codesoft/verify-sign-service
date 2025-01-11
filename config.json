@@ -7,5 +7,12 @@
     "fileSize": 52428800
   },
   "CADefault": "\"Дія\". Кваліфікований надавач електронних довірчих послуг",
-  "DebugMode": true
+  "DebugMode": true,
+  "watermark" : {
+    "image" : "./data/watermark_stamp.png",
+    "imageScaleFactor" : 0.5,
+    "imagePageXPosition" :  "left",
+    "imagePageYPosition" :  "bottom",
+    "imageOpacity" : 0.3
+  }
 }

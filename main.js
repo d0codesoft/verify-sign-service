@@ -1,6 +1,7 @@
 const express = require('express');
 const multer = require('multer');
 const bodyParser = require('body-parser');
+const { PDFDocument, rgb } = require('pdf-lib');
 const fss= require('fs');
 
 const config = JSON.parse(fss.readFileSync('./config.json', 'utf8'));
@@ -190,6 +191,63 @@ function EUSignCPModuleInitialized(isInitialized) {
     g_isLibraryLoaded = isInitialized;
 }
 
+// Add watermark function
+async function addImageWatermark(pdfBytes, configWatermark) {
+
+    // Load the watermark image
+    const watermarkImage = fss.readFileSync(configWatermark.image); // Path to watermark image
+
+    // Load the PDF and image
+    const pdfDoc = await PDFDocument.load(pdfBytes);
+    const pngImage = await pdfDoc.embedPng(watermarkImage);
+
+    // Get dimensions of the image
+    const { width, height } = pngImage.scale(
+        (configWatermark.imageScaleFactor) ? configWatermark.imageScaleFactor : 0.5 ); // Scale the image down (optional)
+
+    // Loop through each page to add the watermark
+    const pages = pdfDoc.getPages();
+    for (const page of pages) {
+        const { width: pageWidth, height: pageHeight } = page.getSize();
+
+        // Default position is center
+        let positionX = (pageWidth - width) / 2;
+        if (configWatermark.imagePageXPosition === "left") {
+            positionX = (pageWidth * 0.1);
+        }
+        else if (configWatermark.imagePageXPosition === "right") {
+            positionX = (pageWidth - (pageWidth * 0.1) - width);
+        }
+        else if (configWatermark.imagePageXPosition === "center") {
+            positionX = (pageWidth - width) / 2;
+        }
+
+        // Default position is center
+        let positionY = (pageHeight - height) / 2;
+        if (configWatermark.imagePageYPosition === "top") {
+            positionY = (pageHeight * 0.1);
+        }
+        else if (configWatermark.imagePageYPosition === "center") {
+            positionY = (pageHeight - height) / 2;
+        }
+        else if (configWatermark.imagePageYPosition === "bottom") {
+            positionY = pageHeight - (pageHeight * 0.1) - height;
+        }
+
+        // Draw the image watermark in the center of each page
+        page.drawImage(pngImage, {
+            x: positionX,
+            y: positionY,
+            width,
+            height,
+            opacity: (configWatermark.imageOpacity) ? configWatermark.imageOpacity : 0.3, // Adjust opacity (optional)
+        });
+    }
+
+    // Save the modified PDF
+    return await pdfDoc.save();
+}
+
 //=============================================================================
 // Initialize app
 const app = express();
@@ -220,6 +278,33 @@ app.post('/verify', upload.single('file'), (req, res) => {
         res.send({ verified: true, signerInfo: verificationResult.GetOwnerInfo() });
     } catch (error) {
         res.status(500).send({ verified: false, error: error.message });
+    }
+});
+
+// POST endpoint to handle PDF file uploads and add watermark
+app.post('/add-sign-watermark', upload.single('file'), async (req, res) => {
+
+    try {
+        if (!req.file) {
+            return res.status(400).send({ error: 'No PDF file uploaded.' });
+        }
+
+        if (!config.watermark &&
+            !fss.existsSync(config.watermark.image)
+        ) {
+            throw new Error('Invalid or missing watermark configuration.');
+        }
+
+        // Add the watermark to the uploaded PDF
+        const watermarkedPdf = await addImageWatermark(req.file.buffer, config.watermark );
+        const pdfBuffer = Buffer.from(watermarkedPdf);
+        // Send the watermarked PDF back to the client
+        res.setHeader('Content-Type', 'application/pdf');
+        res.setHeader('Content-Disposition', 'attachment; filename=watermarked.pdf');
+        res.send(pdfBuffer);
+    } catch (error) {
+        console.error('Error adding watermark:', error);
+        res.status(500).send({ error: error.message });
     }
 });
 
