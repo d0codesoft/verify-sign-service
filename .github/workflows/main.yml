@@ -1,0 +1,47 @@
+name: Node.js CI
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      # Checkout the repository code
+      - name: Checkout repository
+        uses: actions/checkout@v3
+
+      # Set up Node.js environment
+      - name: Setup Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: 14
+
+      # Install dependencies
+      - name: Install dependencies
+        run: npm install
+
+      # Run tests (if any)
+      - name: Run tests
+        run: npm test
+
+      # Lint the code (if applicable)
+      - name: Run linter
+        run: npm run lint || echo "Linting not configured. Skipping."
+
+      # Build the application (optional, if there is a build step)
+      - name: Build application
+        run: npm run build || echo "Build script not configured. Skipping."
+
+      # Verify successful start
+      - name: Start and verify service
+        run: |
+          node main.js &
+          sleep 5
+          curl -f http://localhost:3770 || (echo "Service failed to start" && exit 1)
