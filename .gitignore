@@ -130,3 +130,5 @@ dist
 .yarn/install-state.gz
 .pnp.*
 
+# Node module directories created by yarn
+.node_modules/
