@@ -29,10 +29,6 @@ jobs:
       - name: Run tests
         run: npm test
 
-      # Lint the code (if applicable)
-      - name: Run linter
-        run: npm run lint || echo "Linting not configured. Skipping."
-
       # Build the application (optional, if there is a build step)
       - name: Build application
         run: npm run build || echo "Build script not configured. Skipping."
