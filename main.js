@@ -8,7 +8,8 @@
 const express = require('express');
 const multer = require('multer');
 const bodyParser = require('body-parser');
-const { PDFDocument, rgb } = require('pdf-lib');
+const { PDFDocument, rgb , StandardFonts } = require('pdf-lib');
+const fontkit = require('@pdf-lib/fontkit');
 const fss= require('fs');
 
 const config = JSON.parse(fss.readFileSync('./config.json', 'utf8'));
@@ -255,6 +256,96 @@ async function addImageWatermark(pdfBytes, configWatermark) {
     return await pdfDoc.save();
 }
 
+// Add watermark function with text
+async function addImageWatermarkAndText(pdfBytes, configWatermark, SubjName) {
+
+    // Load the watermark image
+    const watermarkImage = fss.readFileSync(configWatermark.image); // Path to watermark image
+
+    // Load the PDF and image
+    const pdfDoc = await PDFDocument.load(pdfBytes);
+    const pngImage = await pdfDoc.embedPng(watermarkImage);
+
+    // Register fontkit for load default font draw Ukrainian text
+    pdfDoc.registerFontkit(fontkit);
+    // Load the font on support Ukrainian language
+    const fontBytes = fss.readFileSync(configWatermark.font);
+    const customFont = await pdfDoc.embedFont(fontBytes);
+
+    // Get dimensions of the image
+    const { width, height } = pngImage.scale(
+        (configWatermark.imageScaleFactor) ? configWatermark.imageScaleFactor : 0.5 ); // Scale the image down (optional)
+    const lenghtText = (SubjName) ? SubjName.length : 0;
+
+    // Loop through each page to add the watermark
+    const pages = pdfDoc.getPages();
+    for (const page of pages) {
+        const { width: pageWidth, height: pageHeight } = page.getSize();
+
+        // Default position is center
+        let positionX = (pageWidth - width) / 2;
+        let textX = positionX;
+        if (configWatermark.imagePageXPosition === "left") {
+            positionX = (pageWidth * 0.1);
+            textX = positionX + width + 5; // Adjust X position for some padding
+        }
+        else if (configWatermark.imagePageXPosition === "right") {
+            positionX = (pageWidth - (pageWidth * 0.1) - width);
+            textX = positionX - lenghtText - 5; // Adjust X position for some padding
+        }
+        else if (configWatermark.imagePageXPosition === "center") {
+            positionX = (pageWidth - width) / 2;
+            if (configWatermark.imagePageYPosition === "top" || configWatermark.imagePageYPosition === "bottom") {
+                textX = (pageWidth * 0.1);
+            }
+            else {
+                textX = positionX;
+            }
+        }
+
+        // Default position is center
+        let positionY = (pageHeight - height) / 2;
+        let textY= positionY;
+        if (configWatermark.imagePageYPosition === "top") {
+            positionY = pageHeight - (pageHeight * 0.1) - height;
+            textY = positionY; // Adjust Y position for some padding
+        }
+        else if (configWatermark.imagePageYPosition === "center") {
+            positionY = (pageHeight - height) / 2;
+            textY = positionY;
+        }
+        else if (configWatermark.imagePageYPosition === "bottom") {
+            positionY = (pageHeight * 0.1);
+            textY = positionY;
+        }
+
+        // Draw the image watermark in the center of each page
+        page.drawImage(pngImage, {
+            x: positionX,
+            y: positionY,
+            width,
+            height,
+            opacity: (configWatermark.imageOpacity) ? configWatermark.imageOpacity : 0.5, // Adjust opacity (optional)
+        });
+
+        if (SubjName) {
+            // Draw the SubjName text
+            page.drawText(SubjName, {
+                x: textX,
+                y: textY, // Adjust Y position for some padding
+                size: 12,
+                font: customFont,
+                color: rgb(0, 0, 0), // Black color for the text
+                lineHeight : 24,
+                opacity : (configWatermark.imageOpacity) ? configWatermark.imageOpacity : 0.5
+            });
+        }
+    }
+
+    // Save the modified PDF
+    return await pdfDoc.save();
+}
+
 //=============================================================================
 // Initialize app
 const app = express();
@@ -299,11 +390,52 @@ app.post('/add-sign-watermark', upload.single('file'), async (req, res) => {
         if (!config.watermark &&
             !fss.existsSync(config.watermark.image)
         ) {
-            throw new Error('Invalid or missing watermark configuration.');
+            return res.status(400).send({ error: 'Invalid or missing watermark configuration.' });
         }
 
         // Add the watermark to the uploaded PDF
         const watermarkedPdf = await addImageWatermark(req.file.buffer, config.watermark );
+        const pdfBuffer = Buffer.from(watermarkedPdf);
+        // Send the watermarked PDF back to the client
+        res.setHeader('Content-Type', 'application/pdf');
+        res.setHeader('Content-Disposition', 'attachment; filename=watermarked.pdf');
+        res.send(pdfBuffer);
+    } catch (error) {
+        console.error('Error adding watermark:', error);
+        res.status(500).send({ error: error.message });
+    }
+});
+
+// POST endpoint to handle PDF file uploads and add watermark
+app.post('/verify-file', upload.single('file'), async (req, res) => {
+
+    try {
+        if (!req.file) {
+            return res.status(400).send({ error: 'No PDF file uploaded.' });
+        }
+
+        const fileBuffer = req.file.buffer;
+        const signature = req.body.signature;
+        if (!fileBuffer || !signature) {
+            return res.status(400).send({ error: 'Both data and signature are required for verification' });
+        }
+
+        if (!config.watermark &&
+            !fss.existsSync(config.watermark.image)
+        ) {
+            return res.status(400).send({ error: 'Invalid or missing watermark configuration.' });
+        }
+
+        Initialize();
+
+        let datafile = new Uint8Array(fileBuffer)
+        let hash_data = g_euSign.HashData(datafile, true);
+        const verificationResult = g_euSign.VerifyHash(hash_data, signature)
+        let signerInfo = verificationResult.GetOwnerInfo();
+        let subjName = signerInfo.subjCN;
+
+        // Add the watermark to the uploaded PDF
+        const watermarkedPdf = await addImageWatermarkAndText(fileBuffer, config.watermark, subjName );
         const pdfBuffer = Buffer.from(watermarkedPdf);
         // Send the watermarked PDF back to the client
         res.setHeader('Content-Type', 'application/pdf');

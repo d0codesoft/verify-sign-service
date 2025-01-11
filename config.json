@@ -13,6 +13,7 @@
     "imageScaleFactor" : 0.5,
     "imagePageXPosition" :  "right",
     "imagePageYPosition" :  "bottom",
-    "imageOpacity" : 0.6
+    "imageOpacity" : 0.6,
+    "font" : "./data/Cuprum-Bold.ttf"
   }
 }
