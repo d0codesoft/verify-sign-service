@@ -1,32 +1,32 @@
-# Verify Sign File API Service
+# Node.js API Service for Signature Verification and Watermarking
 
-A Node.js service for verifying digital signatures of files using the cryptographic library IIT. This service supports file uploads, signature verification, and adding watermarks to PDF files via an API.
+## Overview
+This API service is built using Node.js to provide two main functionalities:
+1. **Verify Digital Signatures** of uploaded files.
+2. **Add Watermarks** (including issuer details) to PDF files.
 
 ## Features
-
-- Supports memory and disk storage for uploaded files.
 - Verifies digital signatures against cryptographic standards.
-- Adds image-based watermarks (e.g., signature stamps) to PDF files.
-- Customizable through a configuration file (`config.json`).
+- Adds image-based watermarks and optional issuer text to PDF files.
+- Supports memory and disk storage for file uploads.
+- Configurable settings via `config.json`.
 
 ---
 
 ## Configuration
 
-The `config.json` file contains the following parameters:
+The `config.json` file is used to configure the service. Key parameters include:
 
 ### File Storage
 ```json
 "fileStorage": {
-  "destination": "memory", // "memory" for storing files in RAM, "disk" for saving on disk
-  "dest": "./uploads"      // Directory for storing files when "destination" is set to "disk"
+  "destination": "memory", // Options: "memory" (RAM) or "disk" (file system)
+  "dest": "./uploads"      // Directory for storing files when "disk" is chosen
 }
 ```
 
 - **destination**: Determines where uploaded files are temporarily stored.
-  - **"memory"**: Files are stored in memory (RAM).
-  - **"disk"**: Files are saved to the directory specified by the `dest` parameter.
-- **dest**: Directory for storing uploaded files when `destination` is "disk".
+- **dest**: Directory for storing files when `destination` is set to "disk".
 
 ### Upload Limits
 ```json
@@ -35,113 +35,147 @@ The `config.json` file contains the following parameters:
 }
 ```
 
-- **fileSize**: Maximum size for uploaded files in bytes (default: 50 MB).
-
-### Cryptographic Provider Settings
-```json
-"CADefault": "\"Дія\". Кваліфікований надавач електронних довірчих послуг"
-```
-
-- **CADefault**: Name of the default Certification Authority (CA).
+- **fileSize**: Maximum file size for uploads, in bytes (default: 50 MB).
 
 ### Debug Mode
 ```json
 "DebugMode": true
 ```
 
-- **DebugMode**: Enables debug mode for testing purposes.
-  - **true**: Loads test certificates and settings.
-  - **false**: Loads production certificates and settings.
+- **DebugMode**:
+  - `true`: Uses test certificates and settings.
+  - `false`: Uses production certificates and settings.
 
-### Watermark Configuration
+### Watermark Settings
 ```json
 "watermark": {
   "image": "./data/watermark_stamp.png",
   "imageScaleFactor": 0.5,
-  "imagePageXPosition": "left",
-  "imagePageYPosition": "bottom"
+  "imagePageXPosition": "center",
+  "imagePageYPosition": "bottom",
+  "font": "./data/arial.ttf"
 }
 ```
 
-- **image**: Path to the PNG file used as the watermark.
+- **image**: Path to the watermark image (PNG format).
 - **imageScaleFactor**: Scaling factor for resizing the watermark image (default: 0.5).
-- **imagePageXPosition**: Horizontal alignment of the watermark on the page. Possible values:
-  - **"left"**: Positions watermark on the left.
-  - **"center"**: Centers watermark horizontally.
-  - **"right"**: Positions watermark on the right.
-- **imagePageYPosition**: Vertical alignment of the watermark on the page. Possible values:
-  - **"top"**: Positions watermark at the top.
-  - **"center"**: Centers watermark vertically.
-  - **"bottom"**: Positions watermark at the bottom.
+- **imagePageXPosition**: Horizontal alignment of the watermark on the page. Options: `"left"`, `"center"`, `"right"`.
+- **imagePageYPosition**: Vertical alignment of the watermark on the page. Options: `"top"`, `"center"`, `"bottom"`.
+- **font**: Path to the font file used for drawing issuer text.
 
 ---
 
 ## API Endpoints
 
-### Verify File Signature
+### 1. Verify Digital Signature
 **POST /verify**
 
-**Parameters:**
-- **File (file)**: Binary file data (uploaded via form-data).
-- **Signature (signature)**: Digital signature as a string (included in the request body).
+**Description**: Verifies the digital signature of an uploaded file.
 
-**Example cURL Request:**
+**Parameters**:
+- **file** (form-data): The file to verify.
+- **signature** (string): The signature to verify.
+
+**Example cURL Request**:
 ```bash
 curl -X POST http://localhost:3770/verify \
 -F "file=@example.pdf" \
 -F "signature=YOUR_SIGNATURE_STRING"
 ```
 
-**Response:**
-**Success (200):**
-```json
-{
-  "verified": true,
-  "signerInfo": {
-    "subjectCN": "Signer Name",
-    "issuerCN": "CA Name",
-    "serial": "123456789"
+**Responses**:
+- **200 OK**:
+  ```json
+  {
+    "verified": true,
+    "signerInfo": {
+      "subjectCN": "Signer Name",
+      "issuerCN": "CA Name",
+      "serial": "123456789"
+    }
   }
-}
-```
+  ```
+- **400 Bad Request**:
+  ```json
+  {
+    "error": "Both data and signature are required"
+  }
+  ```
+- **500 Internal Server Error**:
+  ```json
+  {
+    "verified": false,
+    "error": "Description of the error"
+  }
+  ```
 
-**Error (400/500):**
-```json
-{
-  "verified": false,
-  "error": "Signature verification failed"
-}
-```
-
-### Add Watermark to PDF
+### 2. Add Watermark to PDF
 **POST /add-sign-watermark**
 
-**Parameters:**
-- **File (file)**: Binary PDF file data (uploaded via form-data).
+**Description**: Adds a watermark to the uploaded PDF file.
 
-**Example cURL Request:**
+**Parameters**:
+- **file** (form-data): The PDF file to watermark.
+
+**Example cURL Request**:
 ```bash
 curl -X POST http://localhost:3770/add-sign-watermark \
 -F "file=@example.pdf" \
 --output watermarked_output.pdf
 ```
 
-**Response:**
-**Success (200):**
-Returns the PDF file with the watermark applied as binary data.
+**Responses**:
+- **200 OK**: Returns the PDF file with the watermark applied.
+- **400 Bad Request**:
+  ```json
+  {
+    "error": "Invalid or missing watermark configuration."
+  }
+  ```
+- **500 Internal Server Error**:
+  ```json
+  {
+    "error": "Description of the error"
+  }
+  ```
 
-**Error (400/500):**
-```json
-{
-  "error": "Description of the error"
-}
+### 3. Verify File and Add Issuer Watermark
+**POST /verify-file**
+
+**Description**: Verifies the signature of the uploaded PDF file and adds the issuer's name as a watermark.
+
+**Parameters**:
+- **file** (form-data): The PDF file to verify.
+- **signature** (string): The signature to verify.
+
+**Example cURL Request**:
+```bash
+curl -X POST http://localhost:3770/verify-file \
+-F "file=@example.pdf" \
+-F "signature=YOUR_SIGNATURE_STRING" \
+--output watermarked_output.pdf
 ```
+
+**Responses**:
+- **200 OK**: Returns the PDF file with the issuer's name and watermark applied.
+- **400 Bad Request**:
+  ```json
+  {
+    "error": "Both data and signature are required"
+  }
+  ```
+- **500 Internal Server Error**:
+  ```json
+  {
+    "error": "Description of the error"
+  }
+  ```
 
 ---
 
 ## Prerequisites
 
-- Node.js (v14+ recommended)
+- Node.js (v19+ recommended)
 - NPM (v6+ recommended)
 
 ---
